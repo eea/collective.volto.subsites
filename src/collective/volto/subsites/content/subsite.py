@@ -14,6 +14,17 @@ from zope.interface import provider
 @provider(IFormFieldProvider)
 class ISubsite(model.Schema):
     """ """
+    model.fieldset(
+        "subsite",
+        label=u"Subsite information",
+        fields=[
+            "subsite_header",
+            "subsite_logo",
+            "subsite_footer",
+            "subsite_css_class",
+            "subsite_social_links"
+        ],
+    )
 
     subsite_header = RichTextField(
         title=_("subsite_header_label", default="Subsite header"),
@@ -25,7 +36,7 @@ class ISubsite(model.Schema):
         required=False,
     )
     subsite_logo = NamedBlobImage(
-        title=_("subsite_logo_label", default="Logo"),
+        title=_("subsite_logo_label", default="Subsite Logo"),
         description=_(
             "subsite_logo_help",
             default="Insert a logo that can be shown in subsite header.",
