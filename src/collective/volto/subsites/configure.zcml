@@ -47,4 +47,11 @@
     component=".vocabularies.SubsitesColorsVocabulary"
     name="volto.subsites.colors"
     />
+
+  <plone:behavior
+    title="Subsite"
+    description="Adds the subsite fields"
+    provides=".content.subsite.ISubsite"
+    />
+
 </configure>

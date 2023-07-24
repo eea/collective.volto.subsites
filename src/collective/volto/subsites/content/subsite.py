@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 from collective.volto.subsites import _
 from plone.app.textfield import RichText as RichTextField
+from plone.autoform.interfaces import IFormFieldProvider
 from plone.dexterity.content import Container
 from plone.namedfile.field import NamedBlobImage
 from plone.schema import Choice
 from plone.schema import SourceText
 from plone.supermodel import model
 from zope.interface import implementer
+from zope.interface import provider
 
 
+@provider(IFormFieldProvider)
 class ISubsite(model.Schema):
     """ """
 
