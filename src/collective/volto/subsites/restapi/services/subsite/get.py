@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from collective.volto.subsites.content.subsite import ISubsite
-from plone.dexterity.utils import iterSchemata
+from collective.volto.subsites.content.subsite import Subsite as SubsiteContainer
+from plone.app.layout.navigation.interfaces import INavigationRoot
 from plone.restapi.interfaces import IExpandableElement
 from plone.restapi.interfaces import IFieldSerializer
 from plone.restapi.interfaces import ISerializeToJsonSummary
@@ -11,6 +12,10 @@ from zope.component import queryMultiAdapter
 from zope.interface import implementer
 from zope.interface import Interface
 from zope.schema import getFields
+
+
+# from plone.dexterity.utils import iterSchemata
+# from plone.restapi.types.utils import get_fieldsets
 
 FIELDS = [
     "subsite_header",
@@ -30,7 +35,8 @@ class Subsite(object):
         self.request = request
 
     def __call__(self, expand=False):
-        result = {"subsite": {"@id": "{}/@subsite".format(self.context.absolute_url())}}
+        result = {"subsite": {
+            "@id": "{}/@subsite".format(self.context.absolute_url())}}
         if not expand:
             return result
 
@@ -42,22 +48,31 @@ class Subsite(object):
         for item in self.context.aq_chain:
             if ISubsite.providedBy(item):
                 subsite = item
+                serializer = queryMultiAdapter(
+                    (subsite, self.request), ISerializeToJsonSummary)
+
+                break
+            elif INavigationRoot.providedBy(item) and \
+                    hasattr(item.aq_inner.aq_self, 'subsite_logo'):
+                serializer = queryMultiAdapter(
+                    (item, self.request), ISerializeToJsonSummary)
+                subsite = SubsiteContainer(
+                    id=item.id, title=item.title).__of__(item.aq_parent)
+                for name in FIELDS:
+                    setattr(subsite, name, getattr(item, name, None))
+                break
         if not subsite:
             return {}
 
-        serializer = queryMultiAdapter((subsite, self.request), ISerializeToJsonSummary)
-
         data = serializer()
+        schema = ISubsite
 
-        for schema in iterSchemata(subsite):
-            for name, field in getFields(schema).items():
-                if name not in FIELDS:
-                    continue
-                serializer = queryMultiAdapter(
-                    (field, subsite, self.request), IFieldSerializer
-                )
-                value = serializer()
-                data[json_compatible(name)] = value
+        for name, field in getFields(schema).items():
+            serializer = queryMultiAdapter(
+                (field, subsite, self.request), IFieldSerializer
+            )
+            value = serializer()
+            data[json_compatible(name)] = value
 
         return data
 
